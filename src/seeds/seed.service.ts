@@ -94,6 +94,42 @@ export class SeedService {
     console.log('🚀 You can now login with these credentials!');
   }
 
+  async createSystemAdmin() {
+    console.log('👑 Creating system admin user...');
+
+    // Check if system admin already exists
+    const existingAdmin = await this.userRepository.findOne({
+      where: { email: 'admin@gempos.system', role: UserRole.SYSTEM_ADMIN },
+    });
+
+    if (existingAdmin) {
+      console.log('⚠️  System admin already exists, skipping...');
+      return;
+    }
+
+    // Create system admin user (no tenant required)
+    const hashedPasswordAdmin = await bcrypt.hash('SystemAdmin123!', 10);
+    
+    const systemAdmin = this.userRepository.create({
+      firstName: 'System',
+      lastName: 'Administrator',
+      email: 'admin@gempos.system',
+      password: hashedPasswordAdmin,
+      role: UserRole.SYSTEM_ADMIN,
+      isActive: true,
+      tenantId: null, // System admin doesn't belong to any tenant
+    } as any);
+
+    await this.userRepository.save(systemAdmin);
+    console.log('✅ System admin created');
+    console.log('');
+    console.log('👑 System Admin credentials:');
+    console.log('📧 Email: admin@gempos.system');
+    console.log('🔑 Password: SystemAdmin123!');
+    console.log('🎯 Access: Can access all tenants and admin endpoints');
+    console.log('');
+  }
+
   async seedSampleData() {
     console.log('🌱 Starting sample data seeding...');
 

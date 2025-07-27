@@ -14,6 +14,7 @@ import { CategoryModule } from './category/category.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { ReportModule } from './report/report.module';
 import { SeedsModule } from './seeds/seeds.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { SeedsModule } from './seeds/seeds.module';
     InventoryModule,
     ReportModule,
     SeedsModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],

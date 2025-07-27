@@ -6,6 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { TenantService } from '../../tenant/tenant.service';
+import { UserRole } from '../../user/user.entity';
 
 @Injectable()
 export class TenantGuard implements CanActivate {
@@ -27,6 +28,13 @@ export class TenantGuard implements CanActivate {
     try {
       // Find tenant by slug
       const tenant = await this.tenantService.findBySlug(tenantSlug);
+
+      // System admins can access any tenant
+      if (user.role === UserRole.SYSTEM_ADMIN) {
+        // Add tenant info to request for easy access in controllers
+        request.tenant = tenant;
+        return true;
+      }
 
       // Check if user belongs to this tenant
       if (user.tenantId !== tenant.id) {

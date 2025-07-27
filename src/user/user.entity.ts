@@ -11,6 +11,7 @@ import { Tenant } from '../tenant/tenant.entity';
 import { Transaction } from '../transaction/transaction.entity';
 
 export enum UserRole {
+  SYSTEM_ADMIN = 'system_admin',
   OWNER = 'owner',
   ADMIN = 'admin',
   CASHIER = 'cashier',
@@ -53,10 +54,10 @@ export class User {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @ManyToOne(() => Tenant, (tenant) => tenant.users)
+  @ManyToOne(() => Tenant, (tenant) => tenant.users, { nullable: true })
   tenant: Tenant;
 
-  @Column()
+  @Column({ nullable: true })
   tenantId: string;
 
   @OneToMany(() => Transaction, (transaction) => transaction.user)

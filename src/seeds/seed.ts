@@ -18,13 +18,18 @@ async function bootstrap() {
       case 'sample':
         await seedService.seedSampleData();
         break;
+      case 'admin':
+        await seedService.createSystemAdmin();
+        break;
       case 'all':
         await seedService.seedMasterData();
+        await seedService.createSystemAdmin();
         await seedService.seedSampleData();
         break;
       default:
         console.log('📋 Available seed commands:');
         console.log('  npm run seed master  - Create master tenant and user');
+        console.log('  npm run seed admin   - Create system admin user');
         console.log('  npm run seed sample  - Create sample users');
         console.log('  npm run seed all     - Create all development data');
         break;

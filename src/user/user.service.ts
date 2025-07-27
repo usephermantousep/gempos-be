@@ -49,6 +49,14 @@ export class UserService {
     });
   }
 
+  async findAllAcrossAllTenants(): Promise<User[]> {
+    return this.userRepository.find({
+      where: { isActive: true },
+      relations: ['tenant'],
+      order: { createdAt: 'DESC' },
+    });
+  }
+
   async findOne(id: string, tenantId: string): Promise<User> {
     const user = await this.userRepository.findOne({
       where: { id, tenantId, isActive: true },
