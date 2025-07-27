@@ -13,6 +13,7 @@ import { CustomerModule } from './customer/customer.module';
 import { CategoryModule } from './category/category.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { ReportModule } from './report/report.module';
+import { SeedsModule } from './seeds/seeds.module';
 
 @Module({
   imports: [
@@ -46,8 +47,9 @@ import { ReportModule } from './report/report.module';
     CategoryModule,
     InventoryModule,
     ReportModule,
+    SeedsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}

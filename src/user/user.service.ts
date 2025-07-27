@@ -62,6 +62,13 @@ export class UserService {
     return user;
   }
 
+  async findById(userId: string): Promise<User | null> {
+    return this.userRepository.findOne({
+      where: { id: userId, isActive: true },
+      relations: ['tenant'],
+    });
+  }
+
   async findByEmail(email: string, tenantId?: string): Promise<User | null> {
     const whereCondition: any = { email, isActive: true };
     if (tenantId) {

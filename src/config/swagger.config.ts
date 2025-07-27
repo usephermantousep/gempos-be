@@ -7,6 +7,8 @@ export class SwaggerConfig {
       .setTitle('GemPOS API')
       .setDescription('Multi-tenant Point of Sales API for UMKM Indonesia')
       .setVersion('1.0')
+      .addServer('http://localhost:3000/api/v1', 'Development Server')
+      .addServer('/api/v1', 'API v1')
       .addBearerAuth()
       .build();
 
