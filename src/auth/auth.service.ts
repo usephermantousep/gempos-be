@@ -15,12 +15,18 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async validateUser(email: string, password: string, tenantId?: string): Promise<User | null> {
+  async validateUser(
+    email: string,
+    password: string,
+    tenantId?: string,
+  ): Promise<User | null> {
     const user = await this.userService.validateUser(email, password, tenantId);
     return user;
   }
 
-  async login(loginDto: LoginDto): Promise<{ access_token: string; user: any }> {
+  async login(
+    loginDto: LoginDto,
+  ): Promise<{ access_token: string; user: any }> {
     let tenant: Tenant | null = null;
     let tenantId: string | undefined = undefined;
 
@@ -35,7 +41,7 @@ export class AuthService {
       loginDto.password,
       tenantId,
     );
-    
+
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -61,7 +67,9 @@ export class AuthService {
     };
   }
 
-  async register(registerDto: RegisterDto): Promise<{ access_token: string; user: any }> {
+  async register(
+    registerDto: RegisterDto,
+  ): Promise<{ access_token: string; user: any }> {
     // Find tenant by slug
     const tenant = await this.tenantService.findBySlug(registerDto.tenantSlug);
 

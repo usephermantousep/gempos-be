@@ -15,7 +15,11 @@ export class ProductController {
   }
 
   @Get(':id')
-  findOne(@Request() req: any, @Param('id') id: string, @Param('tenantSlug') tenantSlug: string) {
+  findOne(
+    @Request() req: any,
+    @Param('id') id: string,
+    @Param('tenantSlug') tenantSlug: string,
+  ) {
     const tenantId = req.tenant.id;
     return this.productService.findOne(id, tenantId);
   }

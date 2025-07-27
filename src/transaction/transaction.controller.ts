@@ -27,7 +27,11 @@ export class TransactionController {
   ) {
     const tenantId = req.tenant.id;
     const userId = req.user.id;
-    return this.transactionService.create(createTransactionDto, tenantId, userId);
+    return this.transactionService.create(
+      createTransactionDto,
+      tenantId,
+      userId,
+    );
   }
 
   @Get()

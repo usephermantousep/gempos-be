@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Tenant } from './tenant.entity';
@@ -82,7 +86,10 @@ export class TenantService {
     const tenant = await this.findOne(id);
 
     // Check if subdomain is being changed and already exists
-    if (updateTenantDto.subdomain && updateTenantDto.subdomain !== tenant.subdomain) {
+    if (
+      updateTenantDto.subdomain &&
+      updateTenantDto.subdomain !== tenant.subdomain
+    ) {
       const existingTenant = await this.tenantRepository.findOne({
         where: { subdomain: updateTenantDto.subdomain },
       });

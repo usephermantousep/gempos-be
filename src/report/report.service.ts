@@ -1,11 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
-import { Transaction, TransactionStatus } from '../transaction/transaction.entity';
+import {
+  Transaction,
+  TransactionStatus,
+} from '../transaction/transaction.entity';
 import { TransactionItem } from '../transaction/transaction-item.entity';
 import { Product } from '../product/product.entity';
-import { SalesReportDto, SalesReportResponse, ReportPeriod } from './dto/sales-report.dto';
-import { InventoryReportDto, InventoryReportResponse } from './dto/inventory-report.dto';
+import {
+  SalesReportDto,
+  SalesReportResponse,
+  ReportPeriod,
+} from './dto/sales-report.dto';
+import {
+  InventoryReportDto,
+  InventoryReportResponse,
+} from './dto/inventory-report.dto';
 
 @Injectable()
 export class ReportService {
@@ -23,7 +33,7 @@ export class ReportService {
     reportDto: SalesReportDto,
   ): Promise<SalesReportResponse> {
     const { period, startDate, endDate, productId, categoryId } = reportDto;
-    
+
     // Calculate date range based on period
     const { start, end } = this.calculateDateRange(period, startDate, endDate);
 
@@ -33,15 +43,26 @@ export class ReportService {
       .leftJoinAndSelect('transaction.items', 'items')
       .leftJoinAndSelect('items.product', 'product')
       .where('transaction.tenantId = :tenantId', { tenantId })
-      .andWhere('transaction.status = :status', { status: TransactionStatus.COMPLETED })
-      .andWhere('transaction.createdAt BETWEEN :start AND :end', { start, end });
+      .andWhere('transaction.status = :status', {
+        status: TransactionStatus.COMPLETED,
+      })
+      .andWhere('transaction.createdAt BETWEEN :start AND :end', {
+        start,
+        end,
+      });
 
     if (productId) {
-      transactionQuery = transactionQuery.andWhere('items.productId = :productId', { productId });
+      transactionQuery = transactionQuery.andWhere(
+        'items.productId = :productId',
+        { productId },
+      );
     }
 
     if (categoryId) {
-      transactionQuery = transactionQuery.andWhere('product.categoryId = :categoryId', { categoryId });
+      transactionQuery = transactionQuery.andWhere(
+        'product.categoryId = :categoryId',
+        { categoryId },
+      );
     }
 
     const transactions = await transactionQuery.getMany();
@@ -49,15 +70,21 @@ export class ReportService {
     // Calculate metrics
     const totalSales = transactions.reduce((sum, t) => sum + t.total, 0);
     const totalTransactions = transactions.length;
-    const totalItems = transactions.reduce((sum, t) => 
-      sum + t.items.reduce((itemSum, item) => itemSum + item.quantity, 0), 0
+    const totalItems = transactions.reduce(
+      (sum, t) =>
+        sum + t.items.reduce((itemSum, item) => itemSum + item.quantity, 0),
+      0,
     );
-    const averageOrderValue = totalTransactions > 0 ? totalSales / totalTransactions : 0;
+    const averageOrderValue =
+      totalTransactions > 0 ? totalSales / totalTransactions : 0;
 
     // Top products
-    const productSales = new Map<string, { name: string; quantity: number; revenue: number }>();
-    transactions.forEach(transaction => {
-      transaction.items.forEach(item => {
+    const productSales = new Map<
+      string,
+      { name: string; quantity: number; revenue: number }
+    >();
+    transactions.forEach((transaction) => {
+      transaction.items.forEach((item) => {
         const key = item.productId;
         const existing = productSales.get(key);
         if (existing) {
@@ -87,7 +114,11 @@ export class ReportService {
     const salesByDay = await this.getSalesByDay(tenantId, start, end);
 
     // Payment methods
-    const paymentMethods = await this.getPaymentMethodsReport(tenantId, start, end);
+    const paymentMethods = await this.getPaymentMethodsReport(
+      tenantId,
+      start,
+      end,
+    );
 
     return {
       period: `${start.toISOString().split('T')[0]} to ${end.toISOString().split('T')[0]}`,
@@ -113,19 +144,23 @@ export class ReportService {
       .andWhere('product.trackStock = :trackStock', { trackStock: true });
 
     if (minStock !== undefined) {
-      productQuery = productQuery.andWhere('product.stock >= :minStock', { minStock });
+      productQuery = productQuery.andWhere('product.stock >= :minStock', {
+        minStock,
+      });
     }
 
     if (maxStock !== undefined) {
-      productQuery = productQuery.andWhere('product.stock <= :maxStock', { maxStock });
+      productQuery = productQuery.andWhere('product.stock <= :maxStock', {
+        maxStock,
+      });
     }
 
     const products = await productQuery.getMany();
 
     // Low stock products
     const lowStockProducts = products
-      .filter(p => p.stock <= p.minStock && p.stock > 0)
-      .map(p => ({
+      .filter((p) => p.stock <= p.minStock && p.stock > 0)
+      .map((p) => ({
         id: p.id,
         name: p.name,
         currentStock: p.stock,
@@ -135,18 +170,21 @@ export class ReportService {
 
     // Out of stock products
     const outOfStockProducts = products
-      .filter(p => p.stock === 0)
-      .map(p => ({
+      .filter((p) => p.stock === 0)
+      .map((p) => ({
         id: p.id,
         name: p.name,
         sku: p.sku,
       }));
 
     // Inventory value
-    const inventoryValue = products.reduce((sum, p) => sum + (p.stock * p.cost), 0);
+    const inventoryValue = products.reduce(
+      (sum, p) => sum + p.stock * p.cost,
+      0,
+    );
 
     // Stock movement (simplified - you might want to track actual movements)
-    const stockMovement = products.map(p => ({
+    const stockMovement = products.map((p) => ({
       productId: p.id,
       productName: p.name,
       stockIn: 0, // Would come from inventory movements
@@ -165,17 +203,23 @@ export class ReportService {
 
   async getDashboardMetrics(tenantId: string) {
     const today = new Date();
-    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const startOfDay = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+    );
     const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
 
     // Today's sales
     const todaySales = await this.transactionRepository
       .createQueryBuilder('transaction')
       .where('transaction.tenantId = :tenantId', { tenantId })
-      .andWhere('transaction.status = :status', { status: TransactionStatus.COMPLETED })
-      .andWhere('transaction.createdAt BETWEEN :start AND :end', { 
-        start: startOfDay, 
-        end: endOfDay 
+      .andWhere('transaction.status = :status', {
+        status: TransactionStatus.COMPLETED,
+      })
+      .andWhere('transaction.createdAt BETWEEN :start AND :end', {
+        start: startOfDay,
+        end: endOfDay,
       })
       .getMany();
 
@@ -187,7 +231,9 @@ export class ReportService {
     const monthSales = await this.transactionRepository
       .createQueryBuilder('transaction')
       .where('transaction.tenantId = :tenantId', { tenantId })
-      .andWhere('transaction.status = :status', { status: TransactionStatus.COMPLETED })
+      .andWhere('transaction.status = :status', {
+        status: TransactionStatus.COMPLETED,
+      })
       .andWhere('transaction.createdAt >= :start', { start: startOfMonth })
       .getMany();
 
@@ -232,10 +278,14 @@ export class ReportService {
     endDate?: string,
   ): { start: Date; end: Date } {
     const now = new Date();
-    
+
     switch (period) {
       case ReportPeriod.DAILY:
-        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const startOfDay = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+        );
         const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
         return { start: startOfDay, end: endOfDay };
 
@@ -243,7 +293,9 @@ export class ReportService {
         const startOfWeek = new Date(now);
         startOfWeek.setDate(now.getDate() - now.getDay());
         startOfWeek.setHours(0, 0, 0, 0);
-        const endOfWeek = new Date(startOfWeek.getTime() + 7 * 24 * 60 * 60 * 1000);
+        const endOfWeek = new Date(
+          startOfWeek.getTime() + 7 * 24 * 60 * 60 * 1000,
+        );
         return { start: startOfWeek, end: endOfWeek };
 
       case ReportPeriod.MONTHLY:
@@ -258,7 +310,9 @@ export class ReportService {
 
       case ReportPeriod.CUSTOM:
         if (!startDate || !endDate) {
-          throw new Error('Start date and end date are required for custom period');
+          throw new Error(
+            'Start date and end date are required for custom period',
+          );
         }
         return { start: new Date(startDate), end: new Date(endDate) };
 
@@ -271,13 +325,18 @@ export class ReportService {
     const transactions = await this.transactionRepository
       .createQueryBuilder('transaction')
       .where('transaction.tenantId = :tenantId', { tenantId })
-      .andWhere('transaction.status = :status', { status: TransactionStatus.COMPLETED })
+      .andWhere('transaction.status = :status', {
+        status: TransactionStatus.COMPLETED,
+      })
       .andWhere('transaction.createdAt BETWEEN :start AND :end', { start, end })
       .getMany();
 
-    const salesByDay = new Map<string, { sales: number; transactions: number }>();
-    
-    transactions.forEach(transaction => {
+    const salesByDay = new Map<
+      string,
+      { sales: number; transactions: number }
+    >();
+
+    transactions.forEach((transaction) => {
       const date = transaction.createdAt.toISOString().split('T')[0];
       const existing = salesByDay.get(date);
       if (existing) {
@@ -295,17 +354,23 @@ export class ReportService {
     }));
   }
 
-  private async getPaymentMethodsReport(tenantId: string, start: Date, end: Date) {
+  private async getPaymentMethodsReport(
+    tenantId: string,
+    start: Date,
+    end: Date,
+  ) {
     const transactions = await this.transactionRepository
       .createQueryBuilder('transaction')
       .where('transaction.tenantId = :tenantId', { tenantId })
-      .andWhere('transaction.status = :status', { status: TransactionStatus.COMPLETED })
+      .andWhere('transaction.status = :status', {
+        status: TransactionStatus.COMPLETED,
+      })
       .andWhere('transaction.createdAt BETWEEN :start AND :end', { start, end })
       .getMany();
 
     const paymentMethods = new Map<string, { count: number; total: number }>();
-    
-    transactions.forEach(transaction => {
+
+    transactions.forEach((transaction) => {
       const method = transaction.paymentMethod;
       const existing = paymentMethods.get(method);
       if (existing) {

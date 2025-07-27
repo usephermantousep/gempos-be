@@ -1,4 +1,10 @@
-import { IsOptional, IsDateString, IsEnum, IsString, IsArray } from 'class-validator';
+import {
+  IsOptional,
+  IsDateString,
+  IsEnum,
+  IsString,
+  IsArray,
+} from 'class-validator';
 
 export enum ComparisonPeriod {
   PREVIOUS_PERIOD = 'previous_period',
@@ -7,7 +13,7 @@ export enum ComparisonPeriod {
 
 export enum GroupBy {
   DAY = 'day',
-  WEEK = 'week', 
+  WEEK = 'week',
   MONTH = 'month',
   PRODUCT = 'product',
   CATEGORY = 'category',

@@ -27,7 +27,7 @@ export class TenantGuard implements CanActivate {
     try {
       // Find tenant by slug
       const tenant = await this.tenantService.findBySlug(tenantSlug);
-      
+
       // Check if user belongs to this tenant
       if (user.tenantId !== tenant.id) {
         throw new ForbiddenException('User does not belong to this tenant');
@@ -35,7 +35,7 @@ export class TenantGuard implements CanActivate {
 
       // Add tenant info to request for easy access in controllers
       request.tenant = tenant;
-      
+
       return true;
     } catch (error) {
       if (error instanceof NotFoundException) {

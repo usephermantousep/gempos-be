@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
@@ -70,7 +74,11 @@ export class UserService {
     });
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto, tenantId: string): Promise<User> {
+  async update(
+    id: string,
+    updateUserDto: UpdateUserDto,
+    tenantId: string,
+  ): Promise<User> {
     const user = await this.findOne(id, tenantId);
 
     // Check if email is being changed and already exists
@@ -102,13 +110,17 @@ export class UserService {
     await this.userRepository.save(user);
   }
 
-  async validateUser(email: string, password: string, tenantId?: string): Promise<User | null> {
+  async validateUser(
+    email: string,
+    password: string,
+    tenantId?: string,
+  ): Promise<User | null> {
     const user = await this.findByEmail(email, tenantId);
-    
-    if (user && await bcrypt.compare(password, user.password)) {
+
+    if (user && (await bcrypt.compare(password, user.password))) {
       return user;
     }
-    
+
     return null;
   }
 }

@@ -23,7 +23,11 @@ export class TransactionService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async create(createTransactionDto: CreateTransactionDto, tenantId: string, userId: string): Promise<Transaction> {
+  async create(
+    createTransactionDto: CreateTransactionDto,
+    tenantId: string,
+    userId: string,
+  ): Promise<Transaction> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -54,11 +58,15 @@ export class TransactionService {
         });
 
         if (!product) {
-          throw new NotFoundException(`Product with ID ${itemDto.productId} not found`);
+          throw new NotFoundException(
+            `Product with ID ${itemDto.productId} not found`,
+          );
         }
 
         if (product.trackStock && product.stock < itemDto.quantity) {
-          throw new BadRequestException(`Insufficient stock for product ${product.name}`);
+          throw new BadRequestException(
+            `Insufficient stock for product ${product.name}`,
+          );
         }
 
         // Calculate item total
@@ -94,7 +102,8 @@ export class TransactionService {
       savedTransaction.subtotal = subtotal;
       savedTransaction.tax = createTransactionDto.tax || 0;
       savedTransaction.discount = createTransactionDto.discount || 0;
-      savedTransaction.total = subtotal + savedTransaction.tax - savedTransaction.discount;
+      savedTransaction.total =
+        subtotal + savedTransaction.tax - savedTransaction.discount;
 
       await queryRunner.manager.save(savedTransaction);
 
@@ -110,14 +119,20 @@ export class TransactionService {
     }
   }
 
-  async findAll(tenantId: string, page = 1, limit = 10): Promise<{transactions: Transaction[], total: number}> {
-    const [transactions, total] = await this.transactionRepository.findAndCount({
-      where: { tenantId },
-      relations: ['items', 'items.product', 'customer', 'user'],
-      order: { createdAt: 'DESC' },
-      skip: (page - 1) * limit,
-      take: limit,
-    });
+  async findAll(
+    tenantId: string,
+    page = 1,
+    limit = 10,
+  ): Promise<{ transactions: Transaction[]; total: number }> {
+    const [transactions, total] = await this.transactionRepository.findAndCount(
+      {
+        where: { tenantId },
+        relations: ['items', 'items.product', 'customer', 'user'],
+        order: { createdAt: 'DESC' },
+        skip: (page - 1) * limit,
+        take: limit,
+      },
+    );
 
     return { transactions, total };
   }
@@ -135,9 +150,13 @@ export class TransactionService {
     return transaction;
   }
 
-  async update(id: string, updateTransactionDto: UpdateTransactionDto, tenantId: string): Promise<Transaction> {
+  async update(
+    id: string,
+    updateTransactionDto: UpdateTransactionDto,
+    tenantId: string,
+  ): Promise<Transaction> {
     const transaction = await this.findOne(id, tenantId);
-    
+
     // Only allow certain updates based on status
     if (transaction.status === TransactionStatus.COMPLETED) {
       throw new BadRequestException('Cannot update completed transaction');
@@ -149,9 +168,12 @@ export class TransactionService {
     return this.findOne(id, tenantId);
   }
 
-  async completeTransaction(id: string, tenantId: string): Promise<Transaction> {
+  async completeTransaction(
+    id: string,
+    tenantId: string,
+  ): Promise<Transaction> {
     const transaction = await this.findOne(id, tenantId);
-    
+
     if (transaction.status !== TransactionStatus.PENDING) {
       throw new BadRequestException('Transaction is not pending');
     }
@@ -169,7 +191,7 @@ export class TransactionService {
 
     try {
       const transaction = await this.findOne(id, tenantId);
-      
+
       if (transaction.status === TransactionStatus.COMPLETED) {
         throw new BadRequestException('Cannot cancel completed transaction');
       }
@@ -203,9 +225,13 @@ export class TransactionService {
   private async generateTransactionNumber(tenantId: string): Promise<string> {
     const today = new Date();
     const dateString = today.toISOString().slice(0, 10).replace(/-/g, '');
-    
-    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    
+
+    const startOfDay = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+    );
+
     const count = await this.transactionRepository.count({
       where: {
         tenantId,
@@ -218,9 +244,15 @@ export class TransactionService {
     return `TRX-${dateString}-${String(count + 1).padStart(4, '0')}`;
   }
 
-  async getTodaySales(tenantId: string): Promise<{total: number, count: number}> {
+  async getTodaySales(
+    tenantId: string,
+  ): Promise<{ total: number; count: number }> {
     const today = new Date();
-    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const startOfDay = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+    );
     const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
 
     const result = await this.transactionRepository
@@ -228,7 +260,9 @@ export class TransactionService {
       .select('SUM(transaction.total)', 'total')
       .addSelect('COUNT(transaction.id)', 'count')
       .where('transaction.tenantId = :tenantId', { tenantId })
-      .andWhere('transaction.status = :status', { status: TransactionStatus.COMPLETED })
+      .andWhere('transaction.status = :status', {
+        status: TransactionStatus.COMPLETED,
+      })
       .andWhere('transaction.createdAt >= :startOfDay', { startOfDay })
       .andWhere('transaction.createdAt < :endOfDay', { endOfDay })
       .getRawOne();
